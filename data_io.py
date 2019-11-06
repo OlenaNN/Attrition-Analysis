@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 class ModelArtifactsIO:
 
-    def __init__(self, domain_name, s3_bucket, labeled_data_folder=''):
-        self.domain_name = domain_name
+    def __init__(self, s3_bucket, labeled_data_folder=''):
         self.s3_bucket = s3_bucket
+        self.model_name = 'model_name'
         self.labeled_data_folder = labeled_data_folder
         self.artifacts_folder = 'model_artifacts'
         self.model_adjuster_config_name = 'model_adjuster_config.json'
@@ -30,25 +30,25 @@ class ModelArtifactsIO:
         }
 
     def build_model_path(self, models_version, model_name):
-        return f'{self.domain_name}/{self.artifacts_folder}/{models_version}/{model_name}'
+        return f'{self.model_name}/{self.artifacts_folder}/{models_version}/{model_name}'
 
 
     def build_test_dataset_path(self, models_version):
-        return f'{self.domain_name}/{self.artifacts_folder}/{models_version}/{self.test_dataset_name}'
+        return f'{self.model_name}/{self.artifacts_folder}/{models_version}/{self.test_dataset_name}'
 
     def build_train_dataset_path(self, models_version):
-        return f'{self.domain_name}/{self.artifacts_folder}/{models_version}/{self.train_dataset_name}'
+        return f'{self.model_name}/{self.artifacts_folder}/{models_version}/{self.train_dataset_name}'
 
 
     def build_resultset_path(self, models_version):
-        return f'{self.domain_name}/{self.artifacts_folder}/{models_version}/{self.resultset_name}'
+        return f'{self.model_name}/{self.artifacts_folder}/{models_version}/{self.resultset_name}'
 
 
     def build_model_adjuster_config_path(self, domain_name):
         return f'{domain_name}/{self.model_adjuster_config_name}'
 
     def get_ma_config(self):
-        key = self.build_model_adjuster_config_path(self.domain_name)
+        key = self.build_model_adjuster_config_path(self.model_name)
         ma_config = self.load_json(key)
         return ma_config
 

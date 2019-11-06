@@ -1,10 +1,6 @@
 import pandas as pd
-import numpy as np
-from datetime import datetime
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_score, learning_curve, train_test_split
-from sklearn.metrics import precision_score, roc_auc_score, recall_score, confusion_matrix, roc_curve, precision_recall_curve, accuracy_score
-import xgboost as xgb
+from sklearn.model_selection import train_test_split
+
 import warnings
 
 
@@ -34,13 +30,15 @@ def data_preparation(data, categorical_features):
     target_map = {'Yes':1, 'No':0}
     # Use the pandas apply method to numerically encode our attrition target variable
     data["Attrition_numerical"] = data["Attrition"].apply(lambda x: target_map[x])
+    processed_data = data.copy()
+    dummy = pd.get_dummies(processed_data[categorical_features], drop_first=True)
+    processed_data = pd.concat([dummy, processed_data], axis=1)
+    processed_data.drop(columns = categorical_features, inplace=True)
+    processed_data.rename(columns={'Attrition_Yes': 'Attrition'}, inplace=True)
+    return processed_data
 
-    lgb_data = attrition.copy()
-    lgb_dummy = pd.get_dummies(lgb_data[categorical], drop_first=True)
-    lgb_data = pd.concat([lgb_dummy, lgb_data], axis=1)
-    lgb_data.drop(columns = categorical, inplace=True)
-    lgb_data.rename(columns={'Attrition_Yes': 'Attrition'}, inplace=True)
-
-y_df = lgb_data['Attrition'].reset_index(drop=True)
-x_df = lgb_data.drop(columns='Attrition')
-train_x, test_x, train_y, test_y = train_test_split(x_df, y_df, test_size=0.20)
+def split_labeled_data_on_train_test(data):
+    target_data = data['Attrition'].reset_index(drop=True)
+    model_data = data.drop(columns='Attrition')
+    train_x, test_x, train_y, test_y = train_test_split(model_data, target_data, test_size=0.20)
+    return train_x, test_x, train_y, test_y
