@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import json
 
 from hyperopt import hp, tpe, Trials
 from hyperopt import fmin
@@ -46,9 +47,36 @@ def train_model(data):
 
 
     lgb_results = model_report.generate_model_report (trials.trials, lgb_hyperparams, 'LightGBM')
-    return lgb_results, x_train, x_test
+    parameters = lgb_results['parameters']
+    final_lgbm_model = models.LGBMClassifier(
+        learning_rate=parameters['learning_rate'],
+        n_estimators=int(parameters['n_estimators']),
+        max_depth=int(parameters['max_depth']),
+        num_leaves=int(parameters['num_leaves']),
+        colsample_bytree=parameters['colsample_bytree'],
+        feature_fraction=parameters['feature_fraction'],
+        reg_lambda=parameters['reg_lambda'],
+        reg_alpha=parameters['reg_alpha'],
+        min_split_gain=parameters['min_split_gain'],
+    )
+    print('Starting training...')
+    final_lgbm_model.fit(x_train, y_train,
+                    eval_set=[(x_train, y_train, ), (x_test, y_test)],
+                    early_stopping_rounds=50,
+                    eval_metric='auc',
+                    verbose=False)
+    print('Dumping model to JSON...')
+    # dump model to JSON (and save to file)
+    model_json = final_lgbm_model.booster_.dump_model()
 
-final_model, final_test_data, final_train_data = train_model(data_processed)
+    with open('model.json', 'w+') as f:
+        json.dump(model_json, f, indent=4)
+    return final_lgbm_model, lgb_results, x_train, x_test
+
+
+
+
+final_model, final_results, final_test_data, final_train_data = train_model(data_processed)
 
 model_artifacts = data_io.ModelArtifactsIO
 
