@@ -1,12 +1,12 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
+
 
 import warnings
 
 
 warnings.filterwarnings('ignore')
 
-attrition = pd.read_csv('input/WA_Fn-UseC_-HR-Employee-Attrition.csv')
+#attrition = pd.read_csv('input/WA_Fn-UseC_-HR-Employee-Attrition.csv')
 
 def generate_data_description(data):
     description = pd.DataFrame(index=['observations(rows)', 'percent missing', 'dtype', 'range'])
@@ -37,8 +37,3 @@ def data_preparation(data, categorical_features):
     processed_data.rename(columns={'Attrition_Yes': 'Attrition'}, inplace=True)
     return processed_data
 
-def split_labeled_data_on_train_test(data):
-    target_data = data['Attrition'].reset_index(drop=True)
-    model_data = data.drop(columns='Attrition')
-    train_x, test_x, train_y, test_y = train_test_split(model_data, target_data, test_size=0.20)
-    return train_x, test_x, train_y, test_y
