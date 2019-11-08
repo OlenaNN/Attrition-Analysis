@@ -2,8 +2,8 @@ import csv
 import logging
 from time import gmtime, strftime
 
-# from vfc.aws import loaders, savers
-# from vfc.aws import s3
+from aws import loaders, savers
+from aws import s3
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +14,7 @@ class ModelArtifactsIO:
         self.s3_bucket = s3_bucket
         self.model_name = 'model_name'
         self.labeled_data_folder = labeled_data_folder
+        self.base_labeled_data_folder = 'labeled_data'
         self.artifacts_folder = 'model_artifacts'
         self.model_adjuster_config_name = 'model_adjuster_config.json'
         self.test_dataset_name = 'test_dataset.csv'
@@ -29,6 +30,48 @@ class ModelArtifactsIO:
             'json': loaders.S3JSONLoader()
         }
 
+    def build_model_path(self, models_version, model_name):
+        return f'{self.artifacts_folder}/{models_version}}'
+
+    def build_model_metrics_path(self, models_version, model_name):
+        return f'{self.build_model_path(models_version, model_name)}/metrics.json'
+
+    def build_confusion_matrix_path(self, models_version, model_name):
+        return f'{self.build_model_path(models_version, model_name)}/confusion_matrix.json'
+
+    def build_domain_config_path(self, models_version):
+        return f'{self.domain_name}/{self.artifacts_folder}/{models_version}/{self.model_adjuster_config_name}'
+
+    def build_qa_dataset_path(self, models_version):
+        return f'{self.artifacts_folder}/{models_version}/{self.test_dataset_name}'
+
+    def build_train_dataset_path(self, models_version):
+        return f'{self.artifacts_folder}/{models_version}/{self.train_dataset_name}'
+
+    def build_invalid_dataset_path(self, models_version):
+        return f'{self.domain_name}/{self.artifacts_folder}/{models_version}/{self.invalid_dataset_name}'
+
+    def build_train_categorical_dataset_path(self, models_version, model_name):
+        return f'{self.domain_name}/{self.artifacts_folder}/{models_version}/{model_name}/{self.train_categorical_name}'
+
+    def build_qa_categorical_dataset_path(self, models_version, model_name):
+        return f'{self.domain_name}/{self.artifacts_folder}/{models_version}/{model_name}/{self.qa_categorical_name}'
+
+    def build_invalid_categorical_dataset_path(self, models_version, model_name):
+        return f'{self.domain_name}/{self.artifacts_folder}/{models_version}/{model_name}/{self.invalid_categorival}'
+
+    def build_resultset_path(self, models_version):
+        return f'{self.artifacts_folder}/{models_version}/{self.resultset_name}'
+
+    def build_validation_metrics_path(self, models_version):
+        return f'{self.domain_name}/{self.artifacts_folder}/{models_version}/{self.validation_metrics}'
+
+    def build_model_adjuster_config_path(self, domain_name):
+        return f'{domain_name}/{self.model_adjuster_config_name}'
+
+    def build_labeled_data_input_path(self):
+        return f'{self.base_labeled_data_folder}/{self.labeled_data_folder}'
+    ###
     def build_model_path(self, models_version, model_name):
         return f'{self.model_name}/{self.artifacts_folder}/{models_version}/{model_name}'
 

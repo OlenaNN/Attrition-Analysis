@@ -18,7 +18,7 @@ import data_io
 
 warnings.filterwarnings('ignore')
 attrition = pd.read_csv('input/WA_Fn-UseC_-HR-Employee-Attrition.csv')
-numerical_data , categorical_data, data_description = data_processing.generate_data_description(attrition)
+numerical_data, categorical_data, data_description = data_processing.generate_data_description(attrition)
 data_processed = data_processing.data_preparation(attrition, categorical_data)
 
 def train_model(data):
@@ -82,5 +82,6 @@ model_artifacts = data_io.ModelArtifactsIO
 
 model_version = model_artifacts.build_models_version()
 data_saver = model_artifacts.build_test_dataset_path(model_version)
+
 
 
