@@ -1,22 +1,10 @@
-import datetime as dt
 import functools
-import json
 import logging
 import data_processing
 from model_utils import LGBMModel
 from hyperopt import tpe, fmin
-
-import app.model_trainer
-# from vfc.logging.decorator import log_time
-# from vfc.webapp import api
-
-from app import dataset_manager, model_report
 from data_io import ModelArtifactsIO
-from app.domain_meta import DomainMeta
-from app.model_trainer import build_model_trainers
-
-# temporary
-from app.model_report import generate_aggregated_metrics, generate_confusion_matrix, generate_resultset
+from decorator import log_time
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +25,6 @@ class ModelAdjuster:
     def __init__(self, env_vars):
         logger.debug(f'Initializing ModelAdjuster from Config')
         self.ma_artifacts_io = ModelArtifactsIO(env_vars.S3_BUCKET, env_vars.LABELED_DATA_FOLDER)
-        self.git_commit = env_vars.GIT_COMMIT_HASH
         self.labeled_data_folder = env_vars.LABELED_DATA_FOLDER
 
     @notify_on_exception
@@ -48,10 +35,10 @@ class ModelAdjuster:
 
         preprocessed_data = self.preprocess_labeled_data(labeled_data)
 
-        final_lgbm_model, parameters, train_x, test_x, train_y, test_y = self.train_model(preprocessed_data)
+        final_lgbm_model, parameters, train_x, test_x, models_version = self.train_model(preprocessed_data)
 
         # Publish Model Statistics
-        self.write_model_artifacts(final_lgbm_model, parameters, train_x, test_x, train_y, test_y, models_version)
+        self.write_model_artifacts(final_lgbm_model, parameters, train_x, test_x, models_version)
 
     def get_labeled_data(self):
         """
@@ -103,12 +90,12 @@ class ModelAdjuster:
         parameters = lgb_results['parameters']
         final_lgbm_model = lgbm_model.fit_final_model(parameters)
         models_version = ModelArtifactsIO.build_models_version()
-        return final_lgbm_model, lgb_results, train_x, test_x, train_y, test_y, models_version
+        return final_lgbm_model, lgb_results, train_x, test_x, models_version
 
 
 
     @log_time(logger)
-    def write_model_artifacts(self, final_lgbm_model, parameters, train_x, test_x, train_y, test_y , models_version):
+    def write_model_artifacts(self, final_lgbm_model, parameters, train_x, test_x, models_version):
         # write back to S3
         logger.info('write model artifacts')
 
@@ -136,6 +123,7 @@ class ModelAdjuster:
         logger.info(f'Uploading final model to S3')
 
         model_path = self.ma_artifacts_io.build_model_path(models_version)
-        self.ma_artifacts_io.save_model(model_path, final_lgbm_model)
+        self.model_json = final_lgbm_model.booster_.dump_model()
+        self.ma_artifacts_io.save_json(model_path, self.model_json )
 
 
