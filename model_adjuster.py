@@ -4,7 +4,7 @@ import data_processing
 from model_utils import LGBMModel
 from hyperopt import tpe, fmin
 from data_io import ModelArtifactsIO
-from decorator import log_time
+#from decorator import log_time
 
 logger = logging.getLogger(__name__)
 
@@ -69,14 +69,14 @@ class ModelAdjuster:
         logger.info(f'retrieved {len(deserialized_data)} records')
         return deserialized_data
 
-    @log_time(logger)
+#    @log_time(logger)
     def preprocess_labeled_data(self, data):
         numerical_data, categorical_data, data_description = data_processing.generate_data_description(data)
         data_processed = data_processing.data_preparation(data, categorical_data)
         return data_processed
 
 
-    @log_time(logger)
+#    @log_time(logger)
     def train_model(self, data):
         lgbm_model = LGBMModel()
         train_x, test_x, train_y, test_y  = lgbm_model.split_data(data)
@@ -94,7 +94,7 @@ class ModelAdjuster:
 
 
 
-    @log_time(logger)
+#    @log_time(logger)
     def write_model_artifacts(self, final_lgbm_model, parameters, train_x, test_x, models_version):
         # write back to S3
         logger.info('write model artifacts')
